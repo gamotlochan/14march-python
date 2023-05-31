@@ -1,0 +1,259 @@
+TASK -1 : Create Database: Practices
+
+
+1--> Return the FirstName, LastName , ProductName and Sales Price for all products sold in month of 
+October 2022 
+
+SELECT t3.FirstName, t3.LastName , t2.Prd_Name, t1.SalesPrice 
+FROM tblsales as t1
+LEFT JOIN tblproduct as t2
+ON t1.Prd_ID=t2.Prd_ID
+LEFT JOIN tblcustomer as t3
+ON t1.Cust_id = t3.CustomerID
+WHERE monthname(t1.SalesDate)='october';
+
+
+2-->  Return the CustomerID, FirstName, and LastName of those individuals in the Customer table who 
+have made no Sales purchases.
+
+SELECT tblcustomer.CustomerID,tblcustomer.FirstName, tblcustomer.LastName 
+FROM tblcustomer 
+LEFT JOIN tblsales ON tblcustomer.CustomerID=tblsales.Cust_id
+WHERE tblsales.Prd_ID = null;
+
+
+
+3--> Return the FirstName, LastName, SalePrice, Recommended SalePrice, and the difference between the 
+SalePrice and Recommended SalePrice for all Sales. The difference must be returned as a positive 
+number.
+
+
+SELECT t3.FirstName,t3.LastName, t1.salesprice, t2.recommended_price , abs(t1.SalesPrice-t2.Recommended_Price) AS difference
+FROM tblsales AS t1
+LEFT JOIN tblproduct as t2
+ON t1.Prd_ID=t2.Prd_ID
+LEFT JOIN tblcustomer AS t3
+ON t1.Cust_id = t3.CustomerID;
+
+
+4--> Add the following Customer and Sale information to the database. (using store procedure) 
+FirstName : Mansi 
+LastName : Joshi
+City: Mumbai 
+State:MH 
+Zip:400001 
+ProductID:3 
+SalePrice:205 
+SaleDate:05/12/2022
+
+
+---------------------------------
+DELIMITER $$
+
+CREATE PROCEDURE insertdata_tblcustomer(f Varchar(20), l varchar(20), c varchar(20), s varchar(20), z int,)
+BEGIN
+	INSERT INTO tblcustomer(FirstName,LastName,City,State,Zip) VALUES(f,l,c,s,z);
+    
+END
+--------------------------------
+CREATE PROCEDURE insertdata_tblpsales(p int,d date)
+BEGIN
+	INSERT INTO tblsales(SalesPrice,SalesDate) VALUES(p,d);
+END;
+--------------------------------
+
+call insertdata_tblcustomer('Mansi','Joshi','Mumbai','MH',400001);
+call insertdata_tblpsales(205,'05/12/2022');
+
+--------------------------------
+
+
+
+5--> Return the Product Category and the average Sale Price for those customers who have purchased two 
+or more products.
+
+SELECT tblproduct.Category, AVG(tblsales.SalesPrice) as average_price
+FROM tblsales
+JOIN tblproduct ON tblproduct.Prd_ID=tblsales.Prd_ID
+GROUP BY tblproduct.Category
+HAVING COUNT(DISTINCT tblsales.Cust_id)>=2;
+
+
+6) Update the Sale Price to the Recommended Sale Price of those Sales occurring between 
+6/10/2022 and 6/20/2022.
+
+UPDATE tblsales,tblproduct
+SET tblsales.SalesPrice = tblproduct.Recommended_Price 
+WHERE tblsales.SalesDate BETWEEN '2022-06-10' AND '2022-06-20'
+
+
+7) Number of Sales by Product Category where the average Recommended Priceis 10 or more dollars 
+greater than the average Sale Price.
+
+SELECT tblproduct.Category, COUNT(*) AS NumberOfSales
+FROM tblsales
+JOIN tblproduct ON tblsales.Prd_ID = tblproduct.Prd_ID
+GROUP BY tblproduct.Category
+HAVING AVG(Recommended_Price) - AVG(salesprice) >= 10;
+
+
+8) Largest order taken by each salesperson, date wise.
+
+SELECT Sales_ID, Cust_id, MAX(salesprice) AS LargestOrderAmount
+FROM tblsales
+GROUP BY cust_id, salesdate;
+
+
+9) Without using a declared iterative construct, return Sale Date and the running total for all sales, 
+ordered by the Sale Date in Ascending Order
+
+SELECT salesdate, 
+       (SELECT SUM(Salesamount) 
+        FROM Sales AS S 
+        WHERE S.SaleDate <= Sales.SaleDate) AS RunningTotal
+FROM Sales
+ORDER BY SaleDate ASC
+
+
+
+
+
+
+CREATE DATABASE ASSIGNMENT2
+
+CREATE TABLE employee
+
+(
+  empid int PRIMARY KEY AUTO_INCREMENT,
+  empname varchar(50),
+  department varchar(50),
+  contact_no int,
+  email_id varchar(50),
+  empheadid int,  
+    
+)
+
+CREATE TABLE empdept
+(
+  dept_id int PRIMARY KEY,
+  dept_name varchar(50),
+  dept_off varchar(50),
+  depthead int  
+    
+)
+
+CREATE TABLE empsalary
+(
+ emp_id int PRIMARY KEY AUTO_INCREMENT,
+ salary int,
+ isparmanent varchar(50),
+    
+    
+ empid_fk int,   
+ FOREIGN KEY (empid_fk) REFERENCES employee(empid)   
+    
+)
+
+CREATE TABLE project
+(
+  projectid varchar PRIMARY KEY(50),
+  Duration int
+
+)
+
+CREATE TABLE country
+(
+  cid varchar(50),
+  cname varchar(50)  
+    
+)
+
+CREATE TABLE clienttable
+(
+ clientid varchar(50) PRIMARY KEY,
+ clientname varchar(50),
+ 
+ cid_fk varchar(50),
+ FOREIGN KEY(cid_fk) REFERENCES country(cid)   
+    
+)
+
+CREATE TABLE empproject
+
+(
+  emid int,
+  projectid varchar(50),
+  clientid varchar(50),
+  startyear int,
+  endyear int,
+    
+  empid_fk int,
+  project_id_fk varchar(50),
+  clientid_fk varchar(50),
+  
+ FOREIGN KEY(empid_fk) REFERENCES employee(empid),
+ FOREIGN key(project_id_fk) REFERENCES project(project_id),
+ FOREIGN KEY(clientid_fk) REFERENCES clienttable(clientid)   
+    
+)
+
+Q1-select the detail of the employee whose name start with p.
+--SELECT * FROM employee WHERE empname LIKE 'p%';
+
+Q2-how many permanent candidate take salary more than 5000.
+--SELECT * FROM empsalary WHERE salary>5000;
+
+Q3-select the detail of employee whose emailed is in gmail.
+--SELECT * FROM employee WHERE email_id LIKE '%@gmail.com';
+
+Q4-select the detail of the employee who work either for department E-104 or E-102.
+--SELECT * FROM employee WHERE department IN ('E-104','E-102');
+
+Q5- what is the department name for deptid E-102?
+--SELECT dept_name FROM empdept WHERE dept_id = '102';
+
+Q6-what is total salary that is paid to permanent employees?
+--SELECT SUM(salary) FROM empsalary WHERE isparmanent = 'yes';
+
+Q7-list name of all employees whose name ends with a.
+-- SELECT * FROM employee WHERE empname LIKE '%a';
+
+Q8-list the number of department of employees in each project.
+--SELECT projectid, COUNT(DISTINCT department) as numdept FROM empproject GROUP BY projectid;
+
+Q9-how many project started in year 2010.
+--SELECT COUNT(*) FROM empproject WHERE startyear =2010;
+
+Q10-how many project started and finished in the same year.
+--SELECT COUNT(*) FROM empproject WHERE startyear = endyear;
+
+Q11-Select the name of the employee whose name,s 3rd character is 'h'.
+--SELECT empname FROM employee WHERE SUBSTRING(3,1)="h";
+
+Q12-select the department name of the company which is assigned to the employee whose employee id is grater 103.
+--SELECT dept_name FROM empdept WHERE dept_id IN (SELECT department FROM employee WHERE empid > 103);
+
+Q13-select the name of the employee who is working under abhishek.
+--SELECT empname FROM employee WHERE empheadid = (SELECT empid FROM employee WHERE empname = 'abhishek');
+
+Q14-Select the name of the employee who is department head of HR.
+--SELECT empname FROM employee WHERE empid = (SELECT depthead FROM empdept WHERE dept_name = 'HR');
+
+Q15-select the name of the employee head who is permanent.
+--SELECT empname FROM employee WHERE empid IN (SELECT depthead FROM empdept WHERE depthead IN (SELECT empid FROM empsalary WHERE isparmanent = 'Yes' ));
+
+Q16-select the name and email of the dept head who is not permanent.
+--SELECT empname FROM employee WHERE empid IN (SELECT depthead FROM empdept WHERE depthead IN (SELECT empid FROM empsalary WHERE isparmanent = 'No' ));
+
+Q17-select the employee whose department off is monday.
+--SELECT * FROM employee WHERE department IN (SELECT depthead FROM empdept WHERE dept_off = 'monday');
+
+Q18-select the indian clients details.
+--SELECT * FROM clienttable WHERE cid_fk = 'C-1';
+
+Q19-select the details of all employee working in devlopment department.
+--SELECT * FROM employee WHERE department = 'E-102';
+
+
+
+ 
